@@ -1,6 +1,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <string>
+#include <math.h>
 
 #include <libv4l2.h>
 #include <opencv2/core.hpp>
@@ -25,6 +26,7 @@ const string threshold_text_button = "apply threshold";
 const string threshold_text_trackbar = "Threshold value";
 const string blur_text_trackbar = "Kernel size blur";
 const string resolution_text_trackbar = "Resolution size";
+const string save_text_button = "save";
 
 bool threshold_bool = false;
 
@@ -35,6 +37,7 @@ void callbackBlurTrackbar( int value, void* user_data );
 void callbackThresholdTrackbar( int value, void* user_data );
 void indicateStaticPoint( int action, int x, int y, int flags, void* ptr_dot_frame);
 void applyThresholding( UMat &src, UMat &dst );
+void callbackSaveButton( int state, void* user_data );
 
 typedef UMat UMat_ptr;
 
@@ -76,6 +79,7 @@ int main( int argc, char** argv) {
     createTrackbar(blur_text_trackbar, window_name, NULL, MAX_BLUR_VALUE, callbackBlurTrackbar, NULL);
     createTrackbar(threshold_text_trackbar, window_name, NULL, MAX_BINARY_VALUE, callbackThresholdTrackbar, NULL);
     setMouseCallback(window_name, indicateStaticPoint, &dot_frame);
+    createButton(save_text_button, callbackSaveButton, NULL);
 
     for (;;) {
         cap.read(raw_frame);
@@ -85,6 +89,18 @@ int main( int argc, char** argv) {
             break;
         }
 
+        //-- Decrease resolution
+        UMat raw_frame_temp = raw_frame.clone();
+        // cout << "resize param: " << resolution_value << endl;
+        resize(raw_frame_temp, raw_frame, Size(), resolution_value, resolution_value, INTER_LINEAR);
+
+        // update dot_frame size
+        if ( raw_frame.size() != dot_frame.size() ) {
+            UMat dot_frame_clone = dot_frame.clone();
+            resize(dot_frame_clone, dot_frame, raw_frame.size(), 0.0, 0.0, INTER_LINEAR);
+        }
+
+
         if ( threshold_bool ) {
             applyThresholding( raw_frame, final_frame );
         } 
@@ -93,8 +109,11 @@ int main( int argc, char** argv) {
             final_frame.convertTo(final_frame, CV_8U);
             // final_frame = raw_frame.clone();
         }
-        
+        // cout << "size: " << dot_frame.size() << endl;
         addWeighted(final_frame, 0.5, dot_frame, 0.5, 0, resulting_frame);
+        // resulting_frame = final_frame.clone();
+
+        //-- show image
         imshow(window_name, resulting_frame);
         if ( waitKey(20) >= 0 ) {
             break;
@@ -147,20 +166,22 @@ void indicateStaticPoint( int action, int x, int y, int flags, void* ptr_dot_fra
 
         // draw circle
         Point center = Point(x, y);
-        circle(*frame, center, 10, Scalar(255, 0, 0), FILLED, LINE_8);
-        circle(*frame, center, 5, Scalar(0, 0, 0), FILLED, LINE_8);
+        circle(*frame, center, ceil(10*resolution_value), Scalar(255), FILLED, LINE_8);
+        circle(*frame, center, ceil(5*resolution_value), Scalar(0), FILLED, LINE_8); // More control over the hole size
     }
 }
 
-void applyThresholding( UMat &src, UMat &dst) {
-    UMat resol, blur, bit;
+void callbackSaveButton( int state, void* user_data ) {
+    cout << "Saving..." << state << endl;
+    
+    cout << "Saving succesfull" << endl;
+}
 
-    // Decrease resolution
-    // cout << "resize param: " << resolution_value << endl;
-    resize(src, resol, Size(), resolution_value, resolution_value, INTER_LINEAR);
+void applyThresholding( UMat &src, UMat &dst) {
+    UMat blur, bit;
 
     // use threshold
-    GaussianBlur(resol, blur, Size(blur_value, blur_value), 10, 10);
+    GaussianBlur(src, blur, Size(blur_value, blur_value), 10, 10);
     threshold(blur, bit, threshold_value, MAX_BINARY_VALUE, THRESH_BINARY);
 
     // convert to grayscale 8-bit
