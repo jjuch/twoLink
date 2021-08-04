@@ -37,8 +37,9 @@ int main( int, char** ) {
     cout << "Quit by pressing `Q`" << endl;
 
     //-- Set window properties
-    /*namedWindow(windowName, WINDOW_NORMAL);
-    setWindowProperty(windowName, WND_PROP_FULLSCREEN, WINDOW_FULLSCREEN);*/
+    // Set full screen - image does not size correctly
+    // namedWindow(windowName, WINDOW_FREERATIO);
+    // setWindowProperty(windowName, WND_PROP_FULLSCREEN, WINDOW_FULLSCREEN);
 
     for (;;) {
         cap.read(raw_frame);
@@ -54,4 +55,6 @@ int main( int, char** ) {
             break;
         }
     }
+    // Camera is deinitialized automatically in VideoCapture destructor
+    return 0;
 }
