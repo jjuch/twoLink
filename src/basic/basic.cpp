@@ -37,8 +37,8 @@ int main( int, char** ) {
     cout << "Quit by pressing `Q`" << endl;
 
     //-- Set window properties
-    namedWindow(windowName, WINDOW_NORMAL);
-    setWindowProperty(windowName, WND_PROP_FULLSCREEN, WINDOW_FULLSCREEN);
+    /*namedWindow(windowName, WINDOW_NORMAL);
+    setWindowProperty(windowName, WND_PROP_FULLSCREEN, WINDOW_FULLSCREEN);*/
 
     for (;;) {
         cap.read(raw_frame);
