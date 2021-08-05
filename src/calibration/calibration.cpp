@@ -3,6 +3,8 @@
 #include <string>
 #include <math.h>
 
+#include "../manager/manageSettingsFile.hpp" // namespace sf
+
 #include <libv4l2.h>
 #include <opencv2/core.hpp>
 #include <opencv2/opencv.hpp>
@@ -13,6 +15,7 @@
 
 using namespace cv;
 using namespace std;
+using namespace sf;
 
 #define MAX_BINARY_VALUE 255
 #define MAX_RESOLUTION_VALUE 10 // divide by 10
@@ -173,7 +176,8 @@ void indicateStaticPoint( int action, int x, int y, int flags, void* ptr_dot_fra
 
 void callbackSaveButton( int state, void* user_data ) {
     cout << "Saving..." << state << endl;
-    
+    string file_path = "../../../local/settings/settings.json";
+    SettingsFile settings_file(file_path);
     cout << "Saving succesfull" << endl;
 }
 
